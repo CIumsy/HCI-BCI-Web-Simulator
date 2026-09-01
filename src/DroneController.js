@@ -108,8 +108,6 @@ export class DroneController {
     this._rotorSpeed = 0;
     this._spinQuat = new THREE.Quaternion();
     this._thrustRatio = 0;
-    /** Seconds of brisk post-flip altitude handling left. See `flipRecoveryTime`. */
-    this._recoveryTimer = 0;
 
     // Scene graph:
     //   root      physics transform + commanded tilt
@@ -367,8 +365,6 @@ export class DroneController {
     this.altitude = Math.max(0, t.y - this._restY);
     this.speed = Math.hypot(v.x, v.z);
 
-    if (this._recoveryTimer > 0) this._recoveryTimer -= dt;
-
     this._updateFlip(dt);
     this._updateAttitude(dt, v);
     this._updateYaw(dt);
@@ -563,25 +559,20 @@ export class DroneController {
     } else {
       // Also the flip's exit phase, deliberately: the throttle comes back on
       // the moment the rotation finishes, so the bank it left behind is flown
-      // rather than coasted through.
+      // rather than coasted through — the same ordinary altitude hold used the
+      // rest of the time, not a separate controller. A dedicated "snap back to
+      // height fast" gain was tried here and felt exactly like what it was: a
+      // second, harsher force taking over right as the kick's momentum faded,
+      // rather than one continuous, tapering push. Ordinary hold, acting on an
+      // axis still tilted by the recoil lean, already gives a gentle diagonal
+      // settle — down and sideways together — without inventing a new law.
       // Cascaded altitude hold: position error -> desired climb rate ->
       // required acceleration -> force along the tilted thrust axis.
       const altError = this.targetY - this._y;
-      // Flying out of a flip is not altitude *hold* — the drone is most of a
-      // metre high with the arc still to finish, and the pilot is actively
-      // putting it back where it started. Held to the cruise gain and climb
-      // rate the last of that descent spills out past the end of the
-      // manoeuvre, so the drone reads as sinking after the flip rather than
-      // arcing through it.
-      const recovering = this._recoveryTimer > 0;
-      const gain = recovering ? spec.flipRecoveryGain : spec.altitudeGain;
-      const limit = recovering
-        ? spec.flipRecoveryRate
-        : Math.max(spec.landingDescentRate, spec.climbRate);
       const desiredVy = clamp(
-        altError * gain,
-        -limit,
-        recovering ? spec.flipRecoveryRate : spec.climbRate,
+        altError * spec.altitudeGain,
+        -Math.max(spec.landingDescentRate, spec.climbRate),
+        spec.climbRate,
       );
       const accel = (desiredVy - v.y) * spec.verticalGain + WORLD.gravity;
       // Compensate for the lean so altitude hold stays correct while banking.
@@ -743,10 +734,6 @@ export class DroneController {
       this._flipTime = 0;
       // Altitude hold resumes from here, with real vertical velocity to arrest.
       this.targetY = this._flipBaseY;
-      // Runs on its own clock rather than the flip's: the kick has to be brief
-      // to read as part of the rotation, but the altitude needs firm handling
-      // for longer than that or the drone drifts back down afterwards.
-      this._recoveryTimer = spec.flipRecoveryTime;
     }
   }
 

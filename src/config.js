@@ -146,36 +146,13 @@ export const DRONE_PRESETS = {
     /**
      * Ceiling on that overshoot, degrees.
      *
-     * This is not just a visual flourish — the exit phase has the throttle on,
-     * so the bank steers the thrust vector and genuinely accelerates the drone
-     * the way it flipped. Below about 14° the airframe's own linear damping
-     * eats the whole thing and the drone decelerates out of the flip instead;
-     * at 20° it leaves with more speed than it arrived with.
+     * Not just a visual flourish — the exit phase has the throttle on, so the
+     * bank genuinely steers thrust, giving a real, physical nudge the way the
+     * drone flipped. Kept modest on purpose: pushed to 20° it read as its own
+     * distinct shove rather than the flip's own momentum settling out. At 10°
+     * it is a slight, legible kick rather than a second manoeuvre.
      */
-    flipRecoilMaxDeg: 20,
-    /**
-     * Altitude gains used only while flying out of a flip, in place of the
-     * cruise `altitudeGain` / `climbRate`. The manoeuvre puts the drone the
-     * better part of half a metre up and it has to be back down by the time
-     * the flip is over — at cruise settings the tail of that descent spills
-     * out past the end of the manoeuvre and reads as sinking afterwards
-     * instead of arcing through it.
-     *
-     * Do not push the gain much past this. Higher does land the drone on its
-     * entry height sooner, but it then keeps going and undershoots — a dip
-     * below where the flip started, which is the same complaint the other way
-     * up. At 4.0 the manoeuvre ends within a few centimetres of level.
-     */
-    flipRecoveryGain: 4.0,
-    /** Ceiling on that recovery's vertical speed, m/s, up or down. */
-    flipRecoveryRate: 3.0,
-    /**
-     * How long that brisk recovery stays engaged after the rotation, seconds.
-     * Deliberately outlives the exit bank: the sideways kick has to be over
-     * quickly to read as part of the flip, but the altitude still needs a
-     * moment of firm handling afterwards or the drone drifts back down.
-     */
-    flipRecoveryTime: 0.7,
+    flipRecoilMaxDeg: 10,
     /**
      * How long the bank left by the rotation is allowed to drive the drone
      * unopposed, seconds. Short on purpose: this is the throw out of the flip,
@@ -189,14 +166,15 @@ export const DRONE_PRESETS = {
      */
     flipKickTime: 0.16,
     /**
-     * Total length of the exit, seconds — the kick above, then a braked settle
-     * for the remainder. Sized so the arc's descent finishes inside the
-     * manoeuvre: the drone climbs the better part of half a metre and has to
-     * spend that again before handing back, or it reads as sinking afterwards.
-     * At 0.55 s it hands back within 3 cm of the height it started at and never
-     * strays more than 2 cm either side after that — nothing left to sink.
+     * Total length of the exit, seconds — the kick above, then ordinary
+     * altitude hold for the remainder, controls still locked out. It does not
+     * need to cover the whole climb back to entry height: ordinary hold is the
+     * same code every other height correction in the game uses, so a beat of
+     * it finishing after control returns reads as normal flight, not as the
+     * flip still running. This just has to outlast the kick and the worst of
+     * the residual sink from the arc.
      */
-    flipExitTime: 0.55,
+    flipExitTime: 0.4,
     /**
      * Entry roll, degrees. The flip starts as an ordinary hard bank held at
      * full throttle, and this is how far over it goes before rotor torque takes
