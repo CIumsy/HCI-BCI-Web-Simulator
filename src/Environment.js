@@ -20,6 +20,7 @@
  * See public/chicken_gun_fruzer_village/license.txt.
  */
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 import { ENVIRONMENT } from './config.js';
 import { disposeObject3D } from './Scene.js';
@@ -55,8 +56,12 @@ export class Environment {
 
     this._prepareMaterials();
     this._findSpawn();
-    onProgress?.(0.92);
+    onProgress?.(0.85);
+    // Collision reads the original per-mesh geometry directly, so it has to
+    // run before the batching step below removes those meshes.
     this._buildCollision();
+    onProgress?.(0.92);
+    this._buildRenderBatches();
     onProgress?.(1);
 
     return this;
@@ -103,6 +108,79 @@ export class Environment {
     this.stats.materials = materials.size;
     this.stats.textures = textures.size;
     this.stats.extent = Math.round(Math.max(size.x, size.z));
+  }
+
+  /**
+   * Collapse the scene's ~190 individual meshes into a handful of draw calls
+   * per material, chunked on a coarse world-space grid.
+   *
+   * At this mesh count, per-mesh draw call submission — not triangle count —
+   * is the dominant render cost, and every mesh also draws a second time for
+   * its shadow depth pass. Merging by material alone would fix that but lose
+   * frustum culling for the whole village at once; chunking keeps culling
+   * working at the grid-cell level, so distant parts of the village (it is
+   * far larger than the flight arena) still cost nothing.
+   *
+   * Runs after `_buildCollision()`, which is what still needs the original
+   * per-mesh geometry; every original mesh is removed once this is done, not
+   * merely hidden — an invisible mesh still costs a full matrix-world update
+   * and a frustum test every frame, so leaving ~190 dead ones in the graph
+   * would have quietly undone the saving.
+   */
+  _buildRenderBatches() {
+    const cellSize = this.config.renderBatchChunkSize;
+    const groupInverse = this.group.matrixWorld.clone().invert();
+    const localMatrix = new THREE.Matrix4();
+    const centre = new THREE.Vector3();
+
+    /** key -> { material, geometries: THREE.BufferGeometry[] } */
+    const batches = new Map();
+    const originals = [];
+
+    this._model.traverse((obj) => {
+      if (!obj.isMesh) return;
+      const geometry = obj.geometry;
+      if (!geometry.getAttribute('position')) return;
+      // GLTFLoader emits one primitive per material, so a multi-material mesh
+      // is effectively absent here; render the rare one unmerged rather than
+      // risk grouping its triangles under the wrong material.
+      if (Array.isArray(obj.material) || !obj.material) return;
+      const material = obj.material;
+
+      localMatrix.multiplyMatrices(groupInverse, obj.matrixWorld);
+
+      if (!geometry.boundingBox) geometry.computeBoundingBox();
+      geometry.boundingBox.getCenter(centre).applyMatrix4(localMatrix);
+      const cellX = Math.floor(centre.x / cellSize);
+      const cellZ = Math.floor(centre.z / cellSize);
+      const key = `${material.uuid}|${cellX}|${cellZ}`;
+
+      let batch = batches.get(key);
+      if (!batch) {
+        batch = { material, geometries: [] };
+        batches.set(key, batch);
+      }
+      batch.geometries.push(geometry.clone().applyMatrix4(localMatrix));
+      originals.push(obj);
+    });
+
+    // Removed only after the traversal completes — mutating a parent's
+    // children mid-`traverse()` skips siblings.
+    for (const obj of originals) obj.parent?.remove(obj);
+
+    for (const { material, geometries } of batches.values()) {
+      const merged = geometries.length > 1 ? mergeGeometries(geometries, false) : geometries[0];
+      // Attribute mismatch across the group (rare) — render unmerged rather
+      // than silently drop geometry.
+      const built = merged ? [merged] : geometries;
+
+      for (const geometry of built) {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        this.group.add(mesh);
+      }
+    }
   }
 
   /**

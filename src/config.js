@@ -288,6 +288,15 @@ export const ENVIRONMENT = {
   /** Steepest face the drone may start on, and clear air needed above it. */
   maxSlopeNormalY: 0.9,
   spawnHeadroom: 12,
+
+  /**
+   * World-space grid cell size, metres, that render meshes are batched into
+   * (see Environment._buildRenderBatches). Smaller cells cull more precisely
+   * when flying far from spawn; larger cells mean fewer draw calls near
+   * spawn, where most of the flight actually happens. 60 m keeps the soft
+   * arena wall (radius 120) spanning about 4 cells across.
+   */
+  renderBatchChunkSize: 60,
 };
 
 /**

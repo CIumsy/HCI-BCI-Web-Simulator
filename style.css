@@ -3,8 +3,8 @@
 
    Everything the user touches is frosted glass over a live 3D scene. No
    gradients anywhere: a single flat translucent tint per surface, a bright
-   1px top edge, and a dark 1px ring on the outside. That pairing is what
-   gives each panel a defined shape against a busy, moving background.
+   hairline top edge, and a dark hairline ring on the outside. That pairing is
+   what gives each panel a defined shape against a busy, moving background.
 
    The tint is dark rather than light on purpose. A light tint reads well over
    the near-black floor but washes out over the bright sky band near the
@@ -32,13 +32,13 @@
   --glass-edge: rgba(255, 255, 255, 0.16);
   --glass-edge-hi: rgba(255, 255, 255, 0.32);
 
-  --ring: 0 0 0 1px rgba(3, 7, 14, 0.62);
-  --lift: 0 12px 32px -8px rgba(2, 5, 12, 0.68);
-  --lift-sm: 0 4px 14px -4px rgba(2, 5, 12, 0.6);
-  --edge-top: inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  --edge-bottom: inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  --ring: 0 0 0 0.0625rem rgba(3, 7, 14, 0.62);
+  --lift: 0 0.75rem 2rem -0.5rem rgba(2, 5, 12, 0.68);
+  --lift-sm: 0 0.25rem 0.875rem -0.25rem rgba(2, 5, 12, 0.6);
+  --edge-top: inset 0 0.0625rem 0 rgba(255, 255, 255, 0.28);
+  --edge-bottom: inset 0 -0.0625rem 0 rgba(255, 255, 255, 0.05);
 
-  --blur: saturate(170%) contrast(105%) blur(16px);
+  --blur: saturate(170%) contrast(105%) blur(1rem);
 
   /* ---- ink ---------------------------------------------------------- */
   --text: #edf2f9;
@@ -53,18 +53,16 @@
   --caution: #ffd166;
   --alert: #ff4d4d;
 
-  --radius: 14px;
+  --radius: 0.875rem;
   --pad-btn: 3.4rem;
 
-  /* Action cluster geometry. The toast anchors off these so it always sits
-     directly above the bottom bar instead of drifting with the tall pads. */
   --actions-pad: 0.45rem;
   --actions-btn-h: 3.5rem;
 
-  --safe-t: env(safe-area-inset-top, 0px);
-  --safe-r: env(safe-area-inset-right, 0px);
-  --safe-b: env(safe-area-inset-bottom, 0px);
-  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-t: env(safe-area-inset-top, 0rem);
+  --safe-r: env(safe-area-inset-right, 0rem);
+  --safe-b: env(safe-area-inset-bottom, 0rem);
+  --safe-l: env(safe-area-inset-left, 0rem);
 }
 
 *,
@@ -118,9 +116,12 @@ body {
   display: grid;
   grid-template-columns: auto 1fr auto;
   grid-template-rows: auto 1fr auto;
+  /* Middle row is an empty flexible spacer — it just gives the viewport
+     breathing room between the top and bottom control clusters. #toast lives
+     inside #actions now (see its own rule), not in this grid. */
   grid-template-areas:
     "hud     topbar   ."
-    "toast   toast    toast"
+    ".       .        ."
     "padleft actions  padright";
   gap: 0.75rem;
   padding: calc(var(--safe-t) + 0.75rem) calc(var(--safe-r) + 0.75rem)
@@ -142,7 +143,7 @@ body {
   cursor: default;
   position: relative;
   background: var(--glass);
-  border: 1px solid var(--glass-edge);
+  border: 0.0625rem solid var(--glass-edge);
   border-radius: var(--radius);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
@@ -171,7 +172,7 @@ body {
   flex: none;
   border-radius: 50%;
   background: var(--signal);
-  box-shadow: 0 0 0 3px rgba(255, 178, 56, 0.14);
+  box-shadow: 0 0 0 0.1875rem rgba(255, 178, 56, 0.14);
 }
 
 .hud-label {
@@ -194,7 +195,7 @@ body {
   gap: 0 0.6rem;
   margin: 0.55rem 0 0.5rem;
   padding: 0.55rem 0 0.1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 0.0625rem solid rgba(255, 255, 255, 0.1);
 }
 
 .hud-cell {
@@ -205,7 +206,7 @@ body {
 
 .hud-cell + .hud-cell {
   padding-left: 0.6rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 0.0625rem solid rgba(255, 255, 255, 0.08);
   margin-left: -0.6rem;
 }
 
@@ -221,7 +222,7 @@ body {
   align-items: center;
   gap: 0.85rem;
   padding-top: 0.45rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 0.0625rem solid rgba(255, 255, 255, 0.08);
 }
 
 .hud-foot-item {
@@ -285,7 +286,7 @@ body {
   position: relative;
   appearance: none;
   margin: 0;
-  border: 1px solid var(--glass-edge);
+  border: 0.0625rem solid var(--glass-edge);
   border-radius: var(--radius);
   background: var(--glass-btn);
   color: var(--text);
@@ -325,8 +326,8 @@ body {
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--signal);
-  outline-offset: 3px;
+  outline: 0.125rem solid var(--signal);
+  outline-offset: 0.1875rem;
 }
 
 /* Held. One language for every control: flat amber, dark ink, pressed in. */
@@ -336,8 +337,8 @@ body {
   border-color: rgba(255, 226, 176, 0.9);
   color: var(--signal-ink);
   transform: scale(0.93);
-  box-shadow: 0 0 0 1px rgba(122, 60, 8, 0.55), 0 0 0 4px rgba(255, 178, 56, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 0.0625rem rgba(122, 60, 8, 0.55), 0 0 0 0.25rem rgba(255, 178, 56, 0.2),
+    inset 0 0.0625rem 0 rgba(255, 255, 255, 0.5);
 }
 
 .btn:not(:disabled).is-active .btn-glyph,
@@ -354,7 +355,7 @@ body {
   color: var(--text-faint);
   background: rgba(150, 168, 192, 0.07);
   border-color: rgba(255, 255, 255, 0.07);
-  box-shadow: var(--ring), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: var(--ring), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.06);
 }
 
 /* Flight-action identities — a flat tint plus a coloured glyph, both light
@@ -421,7 +422,7 @@ body {
   flex: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 0.0625rem rgba(0, 0, 0, 0.3);
   transition: background 0.22s ease, box-shadow 0.22s ease;
 }
 
@@ -434,7 +435,7 @@ body {
 
 .btn--toggle.is-on .toggle-pip {
   background: var(--go);
-  box-shadow: 0 0 0 2px rgba(79, 227, 176, 0.2);
+  box-shadow: 0 0 0 0.125rem rgba(79, 227, 176, 0.2);
 }
 
 .zoom {
@@ -463,16 +464,16 @@ body {
 }
 
 .zoom-slider::-webkit-slider-runnable-track {
-  height: 5px;
+  height: 0.3125rem;
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.5);
 }
 .zoom-slider::-moz-range-track {
-  height: 5px;
+  height: 0.3125rem;
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.5);
 }
 
 .zoom-slider::-webkit-slider-thumb {
@@ -480,32 +481,32 @@ body {
   width: 1.15rem;
   height: 1.15rem;
   margin-top: -0.42rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius);
   background: #e9eff8;
-  box-shadow: 0 2px 8px rgba(2, 6, 14, 0.65), 0 0 0 1px rgba(3, 7, 14, 0.5);
+  box-shadow: 0 0.125rem 0.5rem rgba(2, 6, 14, 0.65), 0 0 0 0.0625rem rgba(3, 7, 14, 0.5);
 }
 .zoom-slider::-moz-range-thumb {
   width: 1.15rem;
   height: 1.15rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius);
   background: #e9eff8;
-  box-shadow: 0 2px 8px rgba(2, 6, 14, 0.65), 0 0 0 1px rgba(3, 7, 14, 0.5);
+  box-shadow: 0 0.125rem 0.5rem rgba(2, 6, 14, 0.65), 0 0 0 0.0625rem rgba(3, 7, 14, 0.5);
 }
 
 .zoom-slider:active::-webkit-slider-thumb {
   background: var(--signal);
-  box-shadow: 0 2px 8px rgba(2, 6, 14, 0.65), 0 0 0 5px rgba(255, 178, 56, 0.24);
+  box-shadow: 0 0.125rem 0.5rem rgba(2, 6, 14, 0.65), 0 0 0 0.3125rem rgba(255, 178, 56, 0.24);
 }
 .zoom-slider:active::-moz-range-thumb {
   background: var(--signal);
-  box-shadow: 0 2px 8px rgba(2, 6, 14, 0.65), 0 0 0 5px rgba(255, 178, 56, 0.24);
+  box-shadow: 0 0.125rem 0.5rem rgba(2, 6, 14, 0.65), 0 0 0 0.3125rem rgba(255, 178, 56, 0.24);
 }
 
 .zoom-slider:focus-visible {
-  outline: 2px solid var(--signal);
-  outline-offset: 2px;
+  outline: 0.125rem solid var(--signal);
+  outline-offset: 0.125rem;
   border-radius: var(--radius);
 }
 
@@ -603,29 +604,30 @@ body {
 .pad-hub {
   grid-area: hub;
   border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.05);
 }
 
 /* -------------------------------------------------------------- toast --- */
 
 #toast {
-  /* Anchored just above the action bar rather than placed in the grid: the
-     bottom row is as tall as the D-pads, so a grid-placed toast floats a long
-     way above the buttons it belongs to. Offsets derive from --actions-*, so
-     it tracks the bar automatically at every breakpoint. */
+  /* A child of #actions (see Simulator.jsx), not a sibling positioned off the
+     overlay — centring on the viewport instead of the bar's own box is what
+     let the two drift apart: the grid's left and right gutters aren't the
+     same width (the HUD panel and the pad aren't the same size), so the
+     bar's actual centre and the viewport's centre are two different points.
+     Anchored to #actions's own box, this holds regardless of gutter width,
+     breakpoint, zoom or how the actions bar itself gets repositioned. */
   position: absolute;
   left: 50%;
-  /* Trailing term is the visible gap plus the action panel's 1px borders. */
-  bottom: calc(
-    var(--safe-b) + 0.75rem + var(--actions-btn-h) + 2 * var(--actions-pad) + 1rem
-  );
+  bottom: 100%;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   transform: translate(-50%, 0.65rem);
   padding: 0.5rem 0.95rem 0.52rem;
-  border: 1px solid var(--glass-edge);
+  border: 0.0625rem solid var(--glass-edge);
   border-radius: var(--radius);
   background: rgba(16, 22, 33, 0.58);
   backdrop-filter: var(--blur);
@@ -674,7 +676,7 @@ body {
 }
 
 .loader-track {
-  height: 3px;
+  height: 0.1875rem;
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -707,7 +709,7 @@ body {
 /* --------------------------------------------------------- responsive --- */
 
 /* Short landscape (phone held sideways) — vertical space is the constraint. */
-@media (max-height: 460px) {
+@media (max-height: 28.75rem) {
   :root {
     --pad-btn: 2.85rem;
     --actions-pad: 0.4rem;
@@ -749,7 +751,7 @@ body {
 
 /* Narrow portrait — pads own the bottom corners (thumbs), actions sit in a
    band just above them, top bar spans the width. Centre stays empty. */
-@media (max-width: 620px) {
+@media (max-width: 38.75rem) {
   :root {
     --pad-btn: 3.05rem;
     --actions-btn-h: 3.1rem;
@@ -759,7 +761,7 @@ body {
     grid-template-areas:
       "hud     hud     hud"
       "topbar  topbar  topbar"
-      "toast   toast   toast"
+      ".       .       ."
       "actions actions actions"
       "padleft .       padright";
     gap: 0.6rem;
@@ -778,28 +780,13 @@ body {
     justify-self: stretch;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  /* Portrait stacks actions *above* the pads, so the bottom of the screen is
-     no longer the action bar. Put the toast back in the grid, where the
-     stretchy row already drops it directly onto the bar. */
-  #toast {
-    position: static;
-    grid-area: toast;
-    justify-self: center;
-    align-self: end;
-    left: auto;
-    bottom: auto;
-    transform: translateY(0.65rem);
-  }
-  #toast.is-visible {
-    transform: translateY(0);
-  }
   .zoom-slider {
     width: 5.5rem;
   }
 }
 
 /* Very narrow phones — keep the four action labels from wrapping. */
-@media (max-width: 380px) {
+@media (max-width: 23.75rem) {
   :root {
     --pad-btn: 2.85rem;
   }

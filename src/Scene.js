@@ -48,6 +48,7 @@ export class SceneManager {
     this.container = container;
     this.renderer = null;
     this.backend = 'unknown';
+    this.dofEnabled = false;
     this.isMobile = IS_MOBILE;
 
     this.scene = new THREE.Scene();

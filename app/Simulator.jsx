@@ -159,6 +159,13 @@ export default function Simulator() {
             <span className="btn-glyph">↻</span>
             <span className="btn-text">Flip R</span>
           </button>
+
+          {/* Child of #actions, not a sibling in the overlay grid, so it
+              centres on the bar's own rendered width — the grid's left and
+              right gutters aren't the same width (the HUD panel and the pad
+              aren't the same size), so centring on the viewport instead
+              leaves the toast visibly off from the button bar beneath it. */}
+          <div id="toast" role="status" aria-live="polite" />
         </div>
 
         {/* --------------------------------- left stick: translation --- */}
@@ -200,8 +207,6 @@ export default function Simulator() {
             </button>
           </div>
         </div>
-
-        <div id="toast" role="status" aria-live="polite" />
       </div>
 
       {/* ---------------------------------------------------- loader --- */}
