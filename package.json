@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 5173",
     "build": "next build",
-    "preview": "next start -H 0.0.0.0 -p 4173",
+    "preview": "serve out -l 4173",
     "test": "node tests/flight-model.mjs",
     "test:browser": "node tests/browser-smoke.mjs"
   },
@@ -19,6 +19,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
-    "puppeteer-core": "^24.0.0"
+    "puppeteer-core": "^24.0.0",
+    "serve": "^14.2.6"
   }
 }

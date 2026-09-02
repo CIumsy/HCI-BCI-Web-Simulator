@@ -1,5 +1,15 @@
+// Set only by the GitHub Pages workflow, to the repo name — Pages serves a
+// project at yourname.github.io/repo-name/, not the root. Unset locally, so
+// `npm run dev` / `npm run build` behave exactly as before.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Plain static files instead of a server build — required for GitHub Pages,
+  // which can only serve files, not run Next's server.
+  output: 'export',
+  basePath,
+
   // Strict mode double-invokes effects, which would boot a second renderer and
   // Rapier world and leak the first pair.
   reactStrictMode: false,
@@ -17,19 +27,6 @@ const nextConfig = {
     config.resolve.alias = { ...config.resolve.alias, three$: 'three/webgpu' };
     config.experiments = { ...config.experiments, topLevelAwait: true };
     return config;
-  },
-
-  // Keeps the door open for SharedArrayBuffer-backed Rapier builds.
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
-        ],
-      },
-    ];
   },
 };
 
