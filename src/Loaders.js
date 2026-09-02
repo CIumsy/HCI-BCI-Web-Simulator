@@ -54,7 +54,11 @@ export class AssetLoader {
         url,
         resolve,
         (evt) => {
-          if (onProgress && evt.lengthComputable) onProgress(evt.loaded / evt.total);
+          // Clamped: `total` comes from Content-Length, which on a compressing
+          // CDN (GitHub Pages included) is the size on the wire, while `loaded`
+          // counts decompressed bytes as the browser inflates the stream — for
+          // a compressible asset that ratio can genuinely run past 1.
+          if (onProgress && evt.lengthComputable) onProgress(Math.min(1, evt.loaded / evt.total));
         },
         (err) => reject(new Error(`Failed to load "${url}": ${err?.message ?? err}`)),
       );

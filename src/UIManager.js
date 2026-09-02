@@ -10,6 +10,8 @@
  * without that, movement inputs stick on.
  */
 
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
 /** Which buttons are live in each drone state. */
 function computeEnabled(status) {
   const flying = status.state === 'flying' && !status.isFlipping;
@@ -399,7 +401,11 @@ export class UIManager {
   }
 
   setProgress(fraction) {
-    const pct = Math.round(fraction * 100);
+    // Belt-and-suspenders clamp: loader progress is assembled from several
+    // asset-load callbacks upstream, and a browser progress event's own
+    // loaded/total ratio isn't guaranteed to stay within [0, 1] to begin with
+    // (see Loaders.js). Never worth showing the pilot a percentage over 100.
+    const pct = Math.round(clamp01(fraction) * 100);
     this.els.loaderBar.style.width = `${pct}%`;
     this.els.loaderText.textContent = `Loading airframe… ${pct}%`;
   }
