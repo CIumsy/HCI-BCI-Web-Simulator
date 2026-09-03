@@ -44,8 +44,13 @@ const KEY_BINDINGS = {
 };
 
 const KEY_ACTIONS = {
-  KeyT: 'takeoff',
-  KeyL: 'land',
+  // Takeoff and Land are one merged button (`data-action="flight"`) — main.js
+  // decides which of the two it means from the drone's current state. Mapping
+  // either key to the old, no-longer-existing 'takeoff'/'land' action names
+  // left `_buttonFor` unable to find a matching button, silently swallowing
+  // both keys.
+  KeyT: 'flight',
+  KeyL: 'flight',
   KeyZ: 'flipLeft',
   KeyX: 'flipRight',
 };

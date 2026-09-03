@@ -142,6 +142,22 @@ ok('movement disabled', s.forward === false && s.up === false && s.yawLeft === f
 ok('flips disabled', s.flipLeft === false && s.flipRight === false);
 await page.screenshot({ path: `${SHOT_DIR}/01-landed.png` });
 
+console.log('\n=== UI: T/L keyboard shortcuts ===');
+// Regression test: T and L used to map to 'takeoff'/'land' actions that no
+// button's data-action matches since Takeoff/Land merged into one button
+// (data-action="flight") — _buttonFor() found nothing, so the key silently
+// did nothing. Exercised here via the real keys, not a click, specifically so
+// that stale-action-name bug can't come back unnoticed.
+await page.keyboard.press('KeyT');
+await page.waitForFunction(() => window.__sim.drone().state !== 'landed', { timeout: 5000 });
+ok('T starts takeoff', (await page.evaluate(() => window.__sim.drone().state)) === 'takingOff');
+await page.waitForFunction(() => window.__sim.drone().state === 'flying', { timeout: 180000 });
+await page.keyboard.press('KeyL');
+await page.waitForFunction(() => window.__sim.drone().state !== 'flying', { timeout: 5000 });
+ok('L starts landing', (await page.evaluate(() => window.__sim.drone().state)) === 'landing');
+await page.waitForFunction(() => window.__sim.drone().state === 'landed', { timeout: 180000 });
+ok('back to landed', (await page.evaluate(() => window.__sim.drone().state)) === 'landed');
+
 console.log('\n=== UI: taking off (all buttons locked) ===');
 await page.click('[data-action="flight"]');
 await simWait(0.3);
