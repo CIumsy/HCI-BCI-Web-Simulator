@@ -195,6 +195,8 @@ export class Environment {
     const centre = box.getCenter(new THREE.Vector3());
     const raycaster = new THREE.Raycaster();
     const from = new THREE.Vector3();
+    const worldNormal = new THREE.Vector3();
+    const normalMatrix = new THREE.Matrix3();
 
     const half = cfg.spawnSearchRadius;
     const step = (half * 2) / cfg.spawnSearchSteps;
@@ -206,9 +208,14 @@ export class Environment {
         const hit = raycaster.intersectObject(this._model, true)[0];
         if (!hit) continue;
 
-        // Level ground only — no roof pitches or rubble piles.
-        const normal = hit.face?.normal;
-        if (!normal || normal.y < cfg.maxSlopeNormalY) continue;
+        // Level ground only — no roof pitches or rubble piles. `face.normal`
+        // is in the hit mesh's own local space; a node with non-uniform scale
+        // anywhere in the village would otherwise compare a distorted normal
+        // against the threshold instead of the real world-space slope.
+        if (!hit.face) continue;
+        normalMatrix.getNormalMatrix(hit.object.matrixWorld);
+        worldNormal.copy(hit.face.normal).applyMatrix3(normalMatrix).normalize();
+        if (worldNormal.y < cfg.maxSlopeNormalY) continue;
 
         // Headroom: anything directly overhead means we are indoors or under a
         // canopy, which is a poor place to start a drone.

@@ -364,7 +364,24 @@ const beforeWheel = (await page.evaluate(() => window.__sim.camera())).distance;
 await page.mouse.wheel({ deltaY: 400 });
 const afterWheel = (await page.evaluate(() => window.__sim.camera())).distance;
 ok('wheel zooms out', afterWheel > beforeWheel, `${beforeWheel.toFixed(2)} -> ${afterWheel.toFixed(2)}m`);
-ok('slider tracks the wheel', true);
+
+// syncZoom() only runs on the throttled HUD tick (main.js, every 0.1s), so the
+// slider needs a moment to catch up to the wheel input before checking it.
+await simWait(0.2);
+const sliderCheck = await page.evaluate(() => {
+  const slider = document.getElementById('zoom-slider');
+  const max = Number(slider.max) || 1000;
+  const zoom01 = window.__sim.scene().getZoom01();
+  // Mirrors UIManager.syncZoom()'s own formula — the slider runs the opposite
+  // way from the distance-based camera API (0 = closest).
+  const expected = Math.round((1 - zoom01) * max);
+  return { value: Number(slider.value), expected };
+});
+ok(
+  'slider tracks the wheel',
+  Math.abs(sliderCheck.value - sliderCheck.expected) <= 1,
+  `slider=${sliderCheck.value} expected=${sliderCheck.expected}`,
+);
 
 console.log('\n=== camera: auto-adjust returns home ===');
 /** Signed angular distance from the camera's azimuth to "behind the drone". */
